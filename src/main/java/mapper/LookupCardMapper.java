@@ -3,7 +3,6 @@ package mapper;
 import entity.Card;
 import entity.Lookup;
 import java.util.HashSet;
-import java.util.Set;
 
 public enum LookupCardMapper implements Mapper<Lookup, Card> {
   INSTANCE;

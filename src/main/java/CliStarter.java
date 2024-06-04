@@ -2,7 +2,6 @@ import controller.CardController;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 
 @Command(name = "KindleToAnki", version = "KindleToAnki 1.0", mixinStandardHelpOptions = true)

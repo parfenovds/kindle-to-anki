@@ -22,11 +22,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.io.entity.StringEntity;
 
 public enum CardService {
   INSTANCE;
@@ -76,11 +71,11 @@ public enum CardService {
 
   private Set<Card> getTranslated(Set<Card> rawFiltered) {
     Set<CompletableFuture<Card>> futures;
-    try (ExecutorService executorService = Executors.newFixedThreadPool(1)) {
+    ExecutorService executorService = Executors.newFixedThreadPool(1);
       futures = rawFiltered.stream()
           .map(card -> CompletableFuture.supplyAsync(() -> translate(card), executorService))
           .collect(Collectors.toSet());
-    }
+
     return futures.stream().map(CompletableFuture::join).collect(Collectors.toSet());
   }
 
