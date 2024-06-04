@@ -11,17 +11,10 @@ public enum LookupCardMapper implements Mapper<Lookup, Card> {
   public Card mapFrom(Lookup source) {
     String[] langToWord = source.getWordKey().split(":");
     return Card.builder()
-        .word(langToWord[1])
+        .words(new HashSet<>())
         .sourceLanguage(langToWord[0])
         .originalSentence(source.getUsage().replaceAll("\u00A0", "").trim())
         .timestamp(source.getTimestamp())
         .build();
-  }
-  public Set<Card> toCardSet(Set<Lookup> lookups) {
-    HashSet<Card> cards = new HashSet<>();
-    for (Lookup lookup : lookups) {
-      cards.add(mapFrom(lookup));
-    }
-    return cards;
   }
 }

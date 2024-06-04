@@ -8,6 +8,8 @@ import entity.Card;
 import entity.Lookup;
 import exception.ExceptionHandler;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -34,13 +36,37 @@ public enum CardService {
 
   public Set<Card> getFilteredTranslated(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, String targetLanguage) {
     Set<Card> rawFiltered = prepareCards(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
-    return getTranslated(rawFiltered);
+    Set<Card> translated = getTranslated(rawFiltered);
+    return makeKeyWordsBold(translated);
+  }
+
+  private Set<Card> makeKeyWordsBold(Set<Card> cards) {
+    for (Card card : cards) {
+      String originalSentence = card.getOriginalSentence();
+      for (String word : card.getWords()) {
+        String regex = "\\b" + word + "\\b";
+        originalSentence = originalSentence.replaceAll(regex, "<b>" + word + "</b>");
+      }
+      card.setOriginalSentence(originalSentence);
+    }
+    return cards;
   }
 
   private Set<Card> prepareCards(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, String targetLanguage) {
     Set<Lookup> lookups = lookupService.getFiltered(dateFrom, dateTo, sourceLanguage, bookTitle);
-    Set<Card> cardSet = lookupCardMapper.toCardSet(lookups);
+    Set<Card> cardSet = toCardSet(lookups);
     return injectTargetLanguage(cardSet, targetLanguage);
+  }
+
+  private Set<Card> toCardSet(Set<Lookup> lookups) {
+    HashMap<Card, Set<String>> cardsToWords = new HashMap<>();
+    for (Lookup lookup : lookups) {
+      Card card = lookupCardMapper.mapFrom(lookup);
+      cardsToWords.putIfAbsent(card, new HashSet<>());
+      cardsToWords.get(card).add(lookup.getWordKey().split(":")[1]);
+    }
+    cardsToWords.forEach(Card::setWords);
+    return cardsToWords.keySet();
   }
 
   private Set<Card> injectTargetLanguage(Set<Card> cardSet, String targetLanguage) {
