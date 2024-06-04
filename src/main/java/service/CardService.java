@@ -1,12 +1,15 @@
 package service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVWriter;
 import constant.Constants;
 import dto.CardLibretranslateDTO;
 import dto.TranslationResponseLibretranslateDTO;
 import entity.Card;
 import entity.Lookup;
 import exception.ExceptionHandler;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import mapper.CardLibretranslateDTOMapper;
 import mapper.LookupCardMapper;
 import okhttp3.MediaType;
@@ -22,14 +26,31 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import util.PathsHandler;
 
+@Log4j2
 public enum CardService {
   INSTANCE;
   private final LookupService lookupService = LookupService.INSTANCE;
   private final LookupCardMapper lookupCardMapper = LookupCardMapper.INSTANCE;
   private final OkHttpClient httpClient = new OkHttpClient();
 
+  public void makeCSV(
+      String dateFrom,
+      String dateTo,
+      String sourceLanguage,
+      String bookTitle,
+      String targetLanguage,
+      String databaseAddress,
+      String outputFilePath) {
+    PathsHandler.setDatabaseAddress(databaseAddress);
+    PathsHandler.setOutputFileAddress(outputFilePath);
+    Set<Card> filteredTranslated = getFilteredTranslated(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
+    exportToCsv(filteredTranslated, outputFilePath);
+  }
+
   public Set<Card> getFilteredTranslated(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, String targetLanguage) {
+    log.error("hello");
     Set<Card> rawFiltered = prepareCards(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
     Set<Card> translated = getTranslated(rawFiltered);
     return makeKeyWordsBold(translated);
@@ -72,9 +93,9 @@ public enum CardService {
   private Set<Card> getTranslated(Set<Card> rawFiltered) {
     Set<CompletableFuture<Card>> futures;
     ExecutorService executorService = Executors.newFixedThreadPool(1);
-      futures = rawFiltered.stream()
-          .map(card -> CompletableFuture.supplyAsync(() -> translate(card), executorService))
-          .collect(Collectors.toSet());
+    futures = rawFiltered.stream()
+        .map(card -> CompletableFuture.supplyAsync(() -> translate(card), executorService))
+        .collect(Collectors.toSet());
 
     return futures.stream().map(CompletableFuture::join).collect(Collectors.toSet());
   }
@@ -87,7 +108,7 @@ public enum CardService {
 
     try {
       json = objectMapper.writeValueAsString(cardLibreTranslateDTO);
-      System.out.println("Request JSON: " + json);
+      System.out.println("Request: " + json);
     } catch (IOException e) {
       ExceptionHandler.handleException(e);
     }
@@ -104,14 +125,40 @@ public enum CardService {
       System.out.println("Response Code: " + response.code());
       String responseBody = response.body().string();
       System.out.println("Response Body: " + responseBody);
-      TranslationResponseLibretranslateDTO translate = objectMapper.readValue(
-          responseBody,
-          TranslationResponseLibretranslateDTO.class
-      );
-      card.setTranslatedSentence(translate.getTranslatedText());
+      if (response.code() == 200) {
+        TranslationResponseLibretranslateDTO translate = objectMapper.readValue(
+            responseBody,
+            TranslationResponseLibretranslateDTO.class
+        );
+        card.setTranslatedSentence(translate.getTranslatedText());
+      } else {
+        JsonNode responseJson = objectMapper.readTree(responseBody);
+        String errorMessage;
+        if (responseJson.has("error")) {
+          errorMessage = "Server Error: " + responseJson.get("error").asText();
+        } else {
+          errorMessage = "Unexpected server response: " + responseBody;
+        }
+        ExceptionHandler.handleException(new RuntimeException(String.format(
+            "Server returned error code: %d with message %s",
+            response.code(),
+            errorMessage
+        )));
+      }
     } catch (IOException e) {
       ExceptionHandler.handleException(e);
     }
     return card;
+  }
+
+  public void exportToCsv(Set<Card> cards, String filePath) {
+    try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
+      for (Card card : cards) {
+        String[] data = {card.getTranslatedSentence(), card.getOriginalSentence()};
+        writer.writeNext(data);
+      }
+    } catch(IOException e) {
+      ExceptionHandler.handleException(e);
+    }
   }
 }

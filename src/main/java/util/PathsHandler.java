@@ -31,6 +31,14 @@ public class PathsHandler {
   }
 
   private static String getFullValidOutputFilePath(String outputFileAddress) {
+    if(outputFileAddress == null) {
+      outputFileAddress = databaseAddressHolder.get();
+      Path path1 = Paths.get(outputFileAddress);
+      if(Files.isRegularFile(path1)) {
+        path1 = path1.getParent();
+      }
+      outputFileAddress = path1.toString();
+    }
     Path path = Paths.get(outputFileAddress);
     path = path.toAbsolutePath();
     return makePathEndingWithRegularFile(path, Constants.DEFAULT_OUTPUT_FILE_NAME).toString();
@@ -39,6 +47,7 @@ public class PathsHandler {
   private static String getFullValidDatabaseFilePath(String probablePath) {
     Path path = Paths.get(probablePath);
     path = path.toAbsolutePath();
+    System.out.println(path);
     path = makePathEndingWithRegularFile(path, Constants.DB_FILE_NAME);
     exceptionIfNoFile(path);
     return path.toString();
@@ -55,7 +64,7 @@ public class PathsHandler {
   }
 
   private static Path makePathEndingWithRegularFile(Path path, String fileName) {
-    if (!Files.isRegularFile(path)) {
+    if (Files.isDirectory(path)) {
       path = FileSystems.getDefault().getPath(path.toString(), fileName);
     }
     return path;

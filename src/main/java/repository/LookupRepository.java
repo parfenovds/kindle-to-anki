@@ -23,10 +23,10 @@ public enum LookupRepository implements Repository<Card> {
       AND book_key LIKE ?;
       """;
   public static final String SELECT_MIN_TIMESTAMP = """
-      SELECT MIN(timestamp) FROM lookups;
+      SELECT MIN(timestamp) as timestamp FROM lookups;
       """;
   public static final String SELECT_MAX_TIMESTAMP = """
-      SELECT MAX(timestamp) FROM lookups;
+      SELECT MAX(timestamp) as timestamp FROM lookups;
       """;
 
   public Set<Lookup> getFiltered(Timestamp timestampFrom, Timestamp timestampTo, String sourceLanguage, String bookTitle) {

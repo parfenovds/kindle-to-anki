@@ -6,6 +6,6 @@ import lombok.experimental.UtilityClass;
 public class ExceptionHandler {
   public static void handleException(Exception e) {
     System.err.println("An exception occurred: " + e.getMessage());
-    throw new RuntimeException(e);
+    System.exit(1);
   }
 }
