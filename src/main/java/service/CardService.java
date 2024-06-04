@@ -1,10 +1,12 @@
 package service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import constant.Constants;
 import dto.CardLibretranslateDTO;
 import dto.TranslationResponseLibretranslateDTO;
 import entity.Card;
 import entity.Lookup;
+import exception.ExceptionHandler;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -56,50 +58,17 @@ public enum CardService {
     return futures.stream().map(CompletableFuture::join).collect(Collectors.toSet());
   }
 
-//  private Card translate(Card card) {
-//    CardLibretranslateDTO cardLibreTranslateDTO = CardLibretranslateDTOMapper.INSTANCE.mapFrom(card);
-//    ObjectMapper objectMapper = new ObjectMapper();
-//    String url = "http://localhost:5000/translate";
-//    String json = "";
-//    try {
-//      json = objectMapper.writeValueAsString(cardLibreTranslateDTO);
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//    try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-//      HttpPost httpPost = new HttpPost(url);
-//      httpPost.setHeader("Content-Type", "application/json");
-//      httpPost.setHeader("Accept", "application/json");
-//      httpPost.setHeader("User-Agent", "PostmanRuntime/7.29.4");
-//      httpPost.setHeader("Accept-Encoding", "gzip, deflate, br");
-//      httpPost.setHeader("Connection", "keep-alive");
-//      httpPost.setEntity(new StringEntity(json));
-//      try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-//        System.out.println("Response Code: " + response.getCode());
-//        System.out.println(response.getEntity());
-//        TranslationResponseLibretranslateDTO translate = objectMapper.readValue(
-//            response.getEntity().getContent(),
-//            TranslationResponseLibretranslateDTO.class
-//        );
-//        card.setTranslatedSentence(translate.getTranslatedText());
-//      }
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//    return card;
-//  }
-
   public Card translate(Card card) {
     CardLibretranslateDTO cardLibreTranslateDTO = CardLibretranslateDTOMapper.INSTANCE.mapFrom(card);
     ObjectMapper objectMapper = new ObjectMapper();
-    String url = "http://localhost:5000/translate";
+    String url = Constants.LIBRETRANSLATE_URL;
     String json = "";
 
     try {
       json = objectMapper.writeValueAsString(cardLibreTranslateDTO);
       System.out.println("Request JSON: " + json);
     } catch (IOException e) {
-      e.printStackTrace();
+      ExceptionHandler.handleException(e);
     }
 
     RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
@@ -110,31 +79,18 @@ public enum CardService {
         .post(body)
         .build();
 
-    // Логирование всех заголовков запроса
-    System.out.println("Request Headers:");
-    for (String name : request.headers().names()) {
-      System.out.println(name + ": " + request.header(name));
-    }
-
     try (Response response = httpClient.newCall(request).execute()) {
       System.out.println("Response Code: " + response.code());
       String responseBody = response.body().string();
       System.out.println("Response Body: " + responseBody);
-
-      if (response.code() == 400) {
-        System.out.println("Bad Request: " + responseBody);
-        return null;
-      }
-
       TranslationResponseLibretranslateDTO translate = objectMapper.readValue(
           responseBody,
           TranslationResponseLibretranslateDTO.class
       );
       card.setTranslatedSentence(translate.getTranslatedText());
     } catch (IOException e) {
-      e.printStackTrace();
+      ExceptionHandler.handleException(e);
     }
-
     return card;
   }
 }

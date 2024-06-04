@@ -13,7 +13,7 @@ public enum LookupCardMapper implements Mapper<Lookup, Card> {
     return Card.builder()
         .word(langToWord[1])
         .sourceLanguage(langToWord[0])
-        .originalSentence(source.getUsage().trim())
+        .originalSentence(source.getUsage().replaceAll("\u00A0", "").trim())
         .timestamp(source.getTimestamp())
         .build();
   }
