@@ -37,7 +37,6 @@ public class PathsHandler {
 
   public static void setLibreAddressHolder(String libreAddress) {
     libreAddressHolder.set(libreAddress == null ? Constants.LIBRETRANSLATE_URL : libreAddress);
-    System.out.println("hello");
   }
 
   public static String getOutputFileAddress() {

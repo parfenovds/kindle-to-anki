@@ -20,10 +20,18 @@ public class ListLanguagesCommand implements Runnable {
   @Override
   public void run() {
     PathsHandler.setLibreAddressHolder(libretranslateAddress);
-    if(sourceLanguage == null) {
-      languageService.getLanguages().forEach(languageDTO -> {
-        System.out.println();
-        System.out.println((languageDTO.getName() + " " + languageDTO.getCode() + " " + languageDTO.getTargets()));
+    if (sourceLanguage == null) {
+
+      List<LanguageDTO> languages = languageService.getLanguages();
+      int maxNameLength = languages.stream().map(l -> l.getName().length()).max(Integer::compareTo).get();
+      System.out.println("Name" + " ".repeat(maxNameLength - 3)
+          + "Code" + " ".repeat(2) + "Language pairs");
+      languages.forEach(languageDTO -> {
+        System.out.println((languageDTO.getName()
+            + " ".repeat(maxNameLength - languageDTO.getName().length() + 1)
+            + languageDTO.getCode() +
+            " ".repeat(4)
+            + languageDTO.getTargets()));
       });
     } else {
       List<List<String>> collect = languageService.getLanguages().stream()
@@ -31,7 +39,7 @@ public class ListLanguagesCommand implements Runnable {
           .map(LanguageDTO::getTargets)
           .sorted()
           .toList();
-      System.out.println(collect.get(0));
+      System.out.println("Available language pairs for " + sourceLanguage + ": " + collect.get(0));
     }
   }
 }

@@ -30,7 +30,7 @@ public class GenerateCSVCommand implements Runnable {
   @Option(names = {"-o", "--output-file"}, description = "Address for the output .csv file. Can be either a directory (in which case the file will be named output.csv) or a file. If not set, the file output.csv will be saved in the directory where vocab.db is located")
   private String outputFilePath;
 
-  @Option(names = {"-l", "--libre-address"}, description = "Address to libretranslate including http or https, ex.: https://libretranslate.de")
+  @Option(names = {"-l", "--libre-address"}, description = "Address to libretranslate including http or https, ex.: https://libretranslate.de; By default http://localhost:5000 is set")
   private String libreAddress;
 
   @Option(names = {"-L", "--limit"}, description = "Max amount of results")
