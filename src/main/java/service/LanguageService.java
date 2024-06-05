@@ -2,6 +2,7 @@ package service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import dto.LanguageDTO;
+import exception.ExceptionHandler;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -19,7 +20,7 @@ public enum LanguageService {
       languages = ConnectionManager.proceedGET(url, new TypeReference<>() {
       });
     } catch (Exception e) {
-      e.printStackTrace();
+      ExceptionHandler.handleException(e);
     }
     return languages;
   }

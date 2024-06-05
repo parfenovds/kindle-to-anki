@@ -3,6 +3,7 @@ package repository;
 import constant.DateOption;
 import entity.Card;
 import entity.Lookup;
+import exception.ExceptionHandler;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -40,7 +41,7 @@ public enum LookupRepository implements Repository<Card> {
         lookups.add(getNextLookup(resultSet));
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      ExceptionHandler.handleException(e);
     }
     return lookups;
   }
@@ -72,17 +73,16 @@ public enum LookupRepository implements Repository<Card> {
   }
 
   public String getDateForLimit(DateOption dateOption) {
-    String result;
     try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + PathsHandler.getDatabaseAddress());
          PreparedStatement preparedStatement =
              connection.prepareStatement(dateOption.equals(DateOption.MIN)
                  ? SELECT_MIN_TIMESTAMP
                  : SELECT_MAX_TIMESTAMP)) {
       ResultSet resultSet = preparedStatement.executeQuery();
-      result = Converter.convertTimestampToString(resultSet.getTimestamp("timestamp"));
+      return Converter.convertTimestampToString(resultSet.getTimestamp("timestamp"));
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      ExceptionHandler.handleException(e);
     }
-    return result;
+    return null;
   }
 }

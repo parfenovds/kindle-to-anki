@@ -2,6 +2,7 @@ package repository;
 
 import dto.BookDTO;
 import entity.BookInfo;
+import exception.ExceptionHandler;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,7 +28,7 @@ public enum BookRepository implements Repository<BookInfo> {
         bookInfoSet.add(getNextLookup(resultSet));
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      ExceptionHandler.handleException(e);
     }
     return bookDTOMapper.mapAll(bookInfoSet);
   }
