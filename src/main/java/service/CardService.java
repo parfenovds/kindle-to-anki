@@ -2,7 +2,6 @@ package service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVWriter;
-import constant.Constants;
 import dto.CardLibretranslateDTO;
 import dto.TranslationResponseLibretranslateDTO;
 import entity.Card;
@@ -34,14 +33,20 @@ public enum CardService {
       String dateTo,
       String sourceLanguage,
       String bookTitle,
-      String targetLanguage) {
-    Set<Card> filteredTranslated = getFilteredTranslated(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
+      String targetLanguage,
+      Integer limit) {
+    Set<Card> filteredTranslated = getFilteredTranslated(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage, limit);
     exportToCsv(filteredTranslated, PathsHandler.getOutputFileAddress());
   }
 
-  public Set<Card> getFilteredTranslated(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, String targetLanguage) {
-    log.info("hello");
-    Set<Card> rawFiltered = prepareCards(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
+  public Set<Card> getFilteredTranslated(
+      String dateFrom,
+      String dateTo,
+      String sourceLanguage,
+      String bookTitle,
+      String targetLanguage,
+      Integer limit) {
+    Set<Card> rawFiltered = prepareCards(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage, limit);
     Set<Card> translated = getTranslated(rawFiltered);
     return makeKeyWordsBold(translated);
   }
@@ -58,8 +63,8 @@ public enum CardService {
     return cards;
   }
 
-  private Set<Card> prepareCards(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, String targetLanguage) {
-    Set<Lookup> lookups = lookupService.getFiltered(dateFrom, dateTo, sourceLanguage, bookTitle);
+  private Set<Card> prepareCards(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, String targetLanguage, Integer limit) {
+    Set<Lookup> lookups = lookupService.getFiltered(dateFrom, dateTo, sourceLanguage, bookTitle, limit);
     Set<Card> cardSet = toCardSet(lookups);
     return injectTargetLanguage(cardSet, targetLanguage);
   }
@@ -83,19 +88,20 @@ public enum CardService {
   private Set<Card> getTranslated(Set<Card> rawFiltered) {
     Set<CompletableFuture<Card>> futures;
     ExecutorService executorService = Executors.newFixedThreadPool(1);
+    String libreAddress = PathsHandler.getLibreAddressHolder();
     futures = rawFiltered.stream()
-        .map(card -> CompletableFuture.supplyAsync(() -> translate(card), executorService))
+        .map(card -> CompletableFuture.supplyAsync(() -> translate(card, libreAddress), executorService))
         .collect(Collectors.toSet());
 
     return futures.stream().map(CompletableFuture::join).collect(Collectors.toSet());
   }
 
-  public Card translate(Card card) {
+  public Card translate(Card card, String address) {
     log.info("Requesting translation for {}", card.getOriginalSentence());
     CardLibretranslateDTO cardLibreTranslateDTO = CardLibretranslateDTOMapper.INSTANCE.mapFrom(card);
     TranslationResponseLibretranslateDTO translate = ConnectionManager.proceedPOST(
         prepareJson(cardLibreTranslateDTO),
-        PathsHandler.getLibreAddressHolder() + "/translate",
+        address + "/translate",
         TranslationResponseLibretranslateDTO.class
     );
     log.info("Translation for {} is {}", card.getOriginalSentence(), translate.getTranslatedText());
@@ -121,7 +127,7 @@ public enum CardService {
         String[] data = {card.getTranslatedSentence(), card.getOriginalSentence()};
         writer.writeNext(data);
       }
-    } catch(IOException e) {
+    } catch (IOException e) {
       ExceptionHandler.handleException(e);
     }
   }

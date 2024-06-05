@@ -20,7 +20,8 @@ public enum LookupRepository implements Repository<Card> {
       SELECT * FROM lookups
       WHERE timestamp BETWEEN ? AND ?
       AND word_key LIKE ?
-      AND book_key LIKE ?;
+      AND book_key LIKE ?
+      LIMIT ?;
       """;
   private static final String SELECT_MIN_TIMESTAMP = """
       SELECT MIN(timestamp) as timestamp FROM lookups;
@@ -29,11 +30,11 @@ public enum LookupRepository implements Repository<Card> {
       SELECT MAX(timestamp) as timestamp FROM lookups;
       """;
 
-  public Set<Lookup> getFiltered(Timestamp timestampFrom, Timestamp timestampTo, String sourceLanguage, String bookTitle) {
+  public Set<Lookup> getFiltered(Timestamp timestampFrom, Timestamp timestampTo, String sourceLanguage, String bookTitle, Integer limit) {
     Set<Lookup> lookups = new HashSet<>();
     try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + PathsHandler.getDatabaseAddress());
          PreparedStatement preparedStatement = connection.prepareStatement(FILTERED_SELECT)) {
-      prepareStatementForFiltering(timestampFrom, timestampTo, sourceLanguage, bookTitle, preparedStatement);
+      prepareStatementForFiltering(timestampFrom, timestampTo, sourceLanguage, bookTitle, preparedStatement, limit);
       ResultSet resultSet = preparedStatement.executeQuery();
       while (resultSet.next()) {
         lookups.add(getNextLookup(resultSet));
@@ -49,11 +50,13 @@ public enum LookupRepository implements Repository<Card> {
       Timestamp timestampTo,
       String sourceLanguage,
       String bookTitle,
-      PreparedStatement preparedStatement) throws SQLException {
+      PreparedStatement preparedStatement,
+      Integer limit) throws SQLException {
     preparedStatement.setTimestamp(1, timestampFrom);
     preparedStatement.setTimestamp(2, timestampTo);
     preparedStatement.setString(3, sourceLanguage == null ? "%" : (sourceLanguage + ":%"));
     preparedStatement.setString(4, bookTitle == null ? "%" : bookTitle);
+    preparedStatement.setInt(5, limit);
   }
 
   private static Lookup getNextLookup(ResultSet resultSet) throws SQLException {

@@ -10,14 +10,15 @@ public enum LookupService {
   INSTANCE;
   private final LookupRepository lookupRepository = LookupRepository.INSTANCE;
 
-  public Set<Lookup> getFiltered(String dateFrom, String dateTo, String sourceLanguage, String bookTitle) {
+  public Set<Lookup> getFiltered(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, Integer limit) {
     if(dateFrom == null) dateFrom = getDateForLimit(DateOption.MIN);
     if(dateTo == null) dateTo = getDateForLimit(DateOption.MAX);
     return lookupRepository.getFiltered(
         Converter.convertStringToTimestamp(dateFrom, true),
         Converter.convertStringToTimestamp(dateTo, false),
         sourceLanguage,
-        bookTitle
+        bookTitle,
+        limit
     );
   }
   private String getDateForLimit(DateOption dateOption) {

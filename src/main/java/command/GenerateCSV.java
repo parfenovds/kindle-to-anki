@@ -33,6 +33,9 @@ public class GenerateCSV implements Runnable {
   @Option(names = {"-l", "--libre-address"}, description = "Address to libretranslate including http or https, ex.: https://libretranslate.de")
   private String libreAddress;
 
+  @Option(names = {"-L", "--limit"}, description = "Max amount of results")
+  private Integer limit;
+
   private final CardService cardService = CardService.INSTANCE;
 
   @Override
@@ -46,7 +49,8 @@ public class GenerateCSV implements Runnable {
         dateTo,
         sourceLanguage,
         bookTitle,
-        targetLanguage
+        targetLanguage,
+        limit
     );
   }
 }
