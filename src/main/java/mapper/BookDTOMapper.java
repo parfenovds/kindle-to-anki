@@ -2,9 +2,7 @@ package mapper;
 
 import dto.BookDTO;
 import entity.BookInfo;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public enum BookDTOMapper implements Mapper<BookInfo, BookDTO> {
   INSTANCE;
