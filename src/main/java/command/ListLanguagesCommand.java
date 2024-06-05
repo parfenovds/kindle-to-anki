@@ -8,7 +8,7 @@ import service.LanguageService;
 import util.PathsHandler;
 
 @Command(name = "list-languages", description = "Lists available languages")
-public class ListLanguages implements Runnable {
+public class ListLanguagesCommand implements Runnable {
   private final LanguageService languageService = LanguageService.INSTANCE;
 
   @Option(names = {"-s", "--source-language"}, description = "The source language you want to check (ISO 639-1 format, like en, de and so on)")

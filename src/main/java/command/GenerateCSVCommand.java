@@ -8,7 +8,7 @@ import util.PathsHandler;
 
 @Log4j2
 @Command(name = "generate-csv", description = "Generates a CSV file from vocab.db")
-public class GenerateCSV implements Runnable {
+public class GenerateCSVCommand implements Runnable {
   @Option(names = {"-F", "--date-from"}, description = "The date (yyyy-MM-dd, year-month-day) for the beginning of the period you want to receive cards")
   private String dateFrom;
 
