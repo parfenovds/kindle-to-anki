@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import service.CardService;
+import util.PathsHandler;
 
 @Log4j2
 @Command(name = "generate-csv", description = "Generates a CSV file from vocab.db")
@@ -29,19 +30,23 @@ public class GenerateCSV implements Runnable {
   @Option(names = {"-o", "--output-file"}, description = "Address for the output .csv file. Can be either a directory (in which case the file will be named output.csv) or a file. If not set, the file output.csv will be saved in the directory where vocab.db is located")
   private String outputFilePath;
 
+  @Option(names = {"-l", "--libre-address"}, description = "Address to libretranslate including http or https, ex.: https://libretranslate.de")
+  private String libreAddress;
+
   private final CardService cardService = CardService.INSTANCE;
 
   @Override
   public void run() {
     log.info("starting");
+    PathsHandler.setDatabaseAddress(databaseAddress);
+    PathsHandler.setOutputFileAddress(outputFilePath);
+    PathsHandler.setLibreAddressHolder(libreAddress);
     cardService.cardProceeding(
         dateFrom,
         dateTo,
         sourceLanguage,
         bookTitle,
-        targetLanguage,
-        databaseAddress,
-        outputFilePath
+        targetLanguage
     );
   }
 }

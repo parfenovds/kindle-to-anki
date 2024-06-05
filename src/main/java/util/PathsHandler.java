@@ -15,6 +15,7 @@ import lombok.extern.log4j.Log4j2;
 public class PathsHandler {
   private static final ThreadLocal<String> databaseAddressHolder = new ThreadLocal<>();
   private static final ThreadLocal<String> outputFileAddressHolder = new ThreadLocal<>();
+  private static final ThreadLocal<String> libreAddressHolder = new ThreadLocal<>();
 
   public static void setDatabaseAddress(String databaseAddress) {
     databaseAddressHolder.set(getFullValidDatabaseFilePath(databaseAddress));
@@ -28,6 +29,14 @@ public class PathsHandler {
   public static void setOutputFileAddress(String outputFileAddress) {
     outputFileAddressHolder.set(getFullValidOutputFilePath(outputFileAddress));
     log.info("Output address is set to {}", outputFileAddressHolder.get());
+  }
+
+  public static String getLibreAddressHolder() {
+    return libreAddressHolder.get();
+  }
+
+  public static void setLibreAddressHolder(String libreAddress) {
+    libreAddressHolder.set(libreAddress == null ? Constants.LIBRETRANSLATE_URL : libreAddress);
   }
 
   public static String getOutputFileAddress() {

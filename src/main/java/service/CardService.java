@@ -34,11 +34,7 @@ public enum CardService {
       String dateTo,
       String sourceLanguage,
       String bookTitle,
-      String targetLanguage,
-      String databaseAddress,
-      String outputFilePath) {
-    PathsHandler.setDatabaseAddress(databaseAddress);
-    PathsHandler.setOutputFileAddress(outputFilePath);
+      String targetLanguage) {
     Set<Card> filteredTranslated = getFilteredTranslated(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
     exportToCsv(filteredTranslated, PathsHandler.getOutputFileAddress());
   }
@@ -99,7 +95,7 @@ public enum CardService {
     CardLibretranslateDTO cardLibreTranslateDTO = CardLibretranslateDTOMapper.INSTANCE.mapFrom(card);
     TranslationResponseLibretranslateDTO translate = ConnectionManager.proceedPOST(
         prepareJson(cardLibreTranslateDTO),
-        Constants.LIBRETRANSLATE_URL,
+        PathsHandler.getLibreAddressHolder() + "/translate",
         TranslationResponseLibretranslateDTO.class
     );
     log.info("Translation for {} is {}", card.getOriginalSentence(), translate.getTranslatedText());
