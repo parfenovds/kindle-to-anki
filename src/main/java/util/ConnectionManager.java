@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import exception.ExceptionHandler;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.MediaType;
@@ -18,7 +19,11 @@ import org.jetbrains.annotations.NotNull;
 @UtilityClass
 @Log4j2
 public class ConnectionManager {
-  private final OkHttpClient httpClient = new OkHttpClient();
+  private final OkHttpClient httpClient = new OkHttpClient.Builder()
+      .connectTimeout(30, TimeUnit.SECONDS)
+      .readTimeout(30, TimeUnit.SECONDS)
+      .writeTimeout(30, TimeUnit.SECONDS)
+      .build();
 
   public <T> T proceedPOST(String json, String url, Class<T> clazz) {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -43,13 +48,12 @@ public class ConnectionManager {
   @NotNull
   public static Request prepareRequest(String json, String url) {
     RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
-    Request request = new Request.Builder()
+    return new Request.Builder()
         .url(url)
         .addHeader("Content-Type", "application/json")
         .addHeader("Accept", "application/json")
         .post(body)
         .build();
-    return request;
   }
 
   @NotNull
