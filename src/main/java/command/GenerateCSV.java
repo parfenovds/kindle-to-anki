@@ -1,9 +1,11 @@
 package command;
 
+import lombok.extern.log4j.Log4j2;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import service.CardService;
 
+@Log4j2
 @Command(name = "generate-csv", description = "Generates a CSV file from vocab.db")
 public class GenerateCSV implements Runnable {
   @Option(names = {"-F", "--date-from"}, description = "The date (yyyy-MM-dd, year-month-day) for the beginning of the period you want to receive cards")
@@ -31,7 +33,8 @@ public class GenerateCSV implements Runnable {
 
   @Override
   public void run() {
-    cardService.makeCSV(
+    log.info("starting");
+    cardService.cardProceeding(
         dateFrom,
         dateTo,
         sourceLanguage,

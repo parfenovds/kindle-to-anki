@@ -1,11 +1,13 @@
 package exception;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
 
 @UtilityClass
+@Log4j2
 public class ExceptionHandler {
   public static void handleException(Exception e) {
-    System.err.println("An exception occurred: " + e.getMessage());
+    log.error("An exception occurred: {}", e.getMessage());
     System.exit(1);
   }
 }

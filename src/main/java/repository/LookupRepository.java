@@ -16,16 +16,16 @@ import util.PathsHandler;
 
 public enum LookupRepository implements Repository<Card> {
   INSTANCE;
-  public static final String FILTERED_SELECT = """
+  private static final String FILTERED_SELECT = """
       SELECT * FROM lookups
       WHERE timestamp BETWEEN ? AND ?
       AND word_key LIKE ?
       AND book_key LIKE ?;
       """;
-  public static final String SELECT_MIN_TIMESTAMP = """
+  private static final String SELECT_MIN_TIMESTAMP = """
       SELECT MIN(timestamp) as timestamp FROM lookups;
       """;
-  public static final String SELECT_MAX_TIMESTAMP = """
+  private static final String SELECT_MAX_TIMESTAMP = """
       SELECT MAX(timestamp) as timestamp FROM lookups;
       """;
 

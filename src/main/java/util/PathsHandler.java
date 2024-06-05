@@ -8,14 +8,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
 
 @UtilityClass
+@Log4j2
 public class PathsHandler {
   private static final ThreadLocal<String> databaseAddressHolder = new ThreadLocal<>();
   private static final ThreadLocal<String> outputFileAddressHolder = new ThreadLocal<>();
 
   public static void setDatabaseAddress(String databaseAddress) {
     databaseAddressHolder.set(getFullValidDatabaseFilePath(databaseAddress));
+    log.info("DB address is set to {}", databaseAddressHolder.get());
   }
 
   public static String getDatabaseAddress() {
@@ -24,6 +27,7 @@ public class PathsHandler {
 
   public static void setOutputFileAddress(String outputFileAddress) {
     outputFileAddressHolder.set(getFullValidOutputFilePath(outputFileAddress));
+    log.info("Output address is set to {}", outputFileAddressHolder.get());
   }
 
   public static String getOutputFileAddress() {
@@ -47,7 +51,6 @@ public class PathsHandler {
   private static String getFullValidDatabaseFilePath(String probablePath) {
     Path path = Paths.get(probablePath);
     path = path.toAbsolutePath();
-    System.out.println(path);
     path = makePathEndingWithRegularFile(path, Constants.DB_FILE_NAME);
     exceptionIfNoFile(path);
     return path.toString();

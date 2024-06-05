@@ -1,6 +1,5 @@
 package service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVWriter;
 import constant.Constants;
@@ -21,11 +20,7 @@ import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import mapper.CardLibretranslateDTOMapper;
 import mapper.LookupCardMapper;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import util.ConnectionManager;
 import util.PathsHandler;
 
 @Log4j2
@@ -33,9 +28,8 @@ public enum CardService {
   INSTANCE;
   private final LookupService lookupService = LookupService.INSTANCE;
   private final LookupCardMapper lookupCardMapper = LookupCardMapper.INSTANCE;
-  private final OkHttpClient httpClient = new OkHttpClient();
 
-  public void makeCSV(
+  public void cardProceeding(
       String dateFrom,
       String dateTo,
       String sourceLanguage,
@@ -46,11 +40,11 @@ public enum CardService {
     PathsHandler.setDatabaseAddress(databaseAddress);
     PathsHandler.setOutputFileAddress(outputFilePath);
     Set<Card> filteredTranslated = getFilteredTranslated(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
-    exportToCsv(filteredTranslated, outputFilePath);
+    exportToCsv(filteredTranslated, PathsHandler.getOutputFileAddress());
   }
 
   public Set<Card> getFilteredTranslated(String dateFrom, String dateTo, String sourceLanguage, String bookTitle, String targetLanguage) {
-    log.error("hello");
+    log.info("hello");
     Set<Card> rawFiltered = prepareCards(dateFrom, dateTo, sourceLanguage, bookTitle, targetLanguage);
     Set<Card> translated = getTranslated(rawFiltered);
     return makeKeyWordsBold(translated);
@@ -101,54 +95,28 @@ public enum CardService {
   }
 
   public Card translate(Card card) {
+    log.info("Requesting translation for {}", card.getOriginalSentence());
     CardLibretranslateDTO cardLibreTranslateDTO = CardLibretranslateDTOMapper.INSTANCE.mapFrom(card);
-    ObjectMapper objectMapper = new ObjectMapper();
-    String url = Constants.LIBRETRANSLATE_URL;
-    String json = "";
+    TranslationResponseLibretranslateDTO translate = ConnectionManager.proceedPOST(
+        prepareJson(cardLibreTranslateDTO),
+        Constants.LIBRETRANSLATE_URL,
+        TranslationResponseLibretranslateDTO.class
+    );
+    log.info("Translation for {} is {}", card.getOriginalSentence(), translate.getTranslatedText());
+    card.setTranslatedSentence(translate.getTranslatedText());
+    return card;
+  }
 
+  private static String prepareJson(CardLibretranslateDTO cardLibreTranslateDTO) {
+    String json = "";
+    ObjectMapper objectMapper = new ObjectMapper();
     try {
       json = objectMapper.writeValueAsString(cardLibreTranslateDTO);
-      System.out.println("Request: " + json);
+      log.debug("Request: {}", json);
     } catch (IOException e) {
       ExceptionHandler.handleException(e);
     }
-
-    RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
-    Request request = new Request.Builder()
-        .url(url)
-        .addHeader("Content-Type", "application/json")
-        .addHeader("Accept", "application/json")
-        .post(body)
-        .build();
-
-    try (Response response = httpClient.newCall(request).execute()) {
-      System.out.println("Response Code: " + response.code());
-      String responseBody = response.body().string();
-      System.out.println("Response Body: " + responseBody);
-      if (response.code() == 200) {
-        TranslationResponseLibretranslateDTO translate = objectMapper.readValue(
-            responseBody,
-            TranslationResponseLibretranslateDTO.class
-        );
-        card.setTranslatedSentence(translate.getTranslatedText());
-      } else {
-        JsonNode responseJson = objectMapper.readTree(responseBody);
-        String errorMessage;
-        if (responseJson.has("error")) {
-          errorMessage = "Server Error: " + responseJson.get("error").asText();
-        } else {
-          errorMessage = "Unexpected server response: " + responseBody;
-        }
-        ExceptionHandler.handleException(new RuntimeException(String.format(
-            "Server returned error code: %d with message %s",
-            response.code(),
-            errorMessage
-        )));
-      }
-    } catch (IOException e) {
-      ExceptionHandler.handleException(e);
-    }
-    return card;
+    return json;
   }
 
   public void exportToCsv(Set<Card> cards, String filePath) {

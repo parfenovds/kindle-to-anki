@@ -1,3 +1,4 @@
+import command.BookCommand;
 import command.GenerateCSV;
 import command.ListLanguages;
 import picocli.CommandLine;
@@ -8,7 +9,7 @@ import picocli.CommandLine.Command;
     name = "KindleToAnki",
     version = "KindleToAnki 1.0",
     mixinStandardHelpOptions = true,
-    subcommands = {GenerateCSV.class, ListLanguages.class}
+    subcommands = {GenerateCSV.class, ListLanguages.class, BookCommand.class}
 )
 public class CliStarter implements Runnable {
   public static void main(String[] args) {
