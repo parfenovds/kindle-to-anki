@@ -1,3 +1,5 @@
+// Package entity - This package contains entities retrieved from the database
+
 package entity;
 
 import lombok.AllArgsConstructor;
@@ -6,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+// Entity representing Book Information
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

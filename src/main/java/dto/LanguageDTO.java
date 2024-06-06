@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+// Data Transfer Object for Language information
 @Data
 @Builder
 @EqualsAndHashCode(of = "code")

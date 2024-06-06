@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+// Entity representing a Card
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

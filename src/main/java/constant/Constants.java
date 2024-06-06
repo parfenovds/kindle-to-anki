@@ -1,5 +1,6 @@
 package constant;
 
+// Constants used in the application
 public final class Constants {
   public static final String LIBRETRANSLATE_URL = "http://localhost:5000";
   public static final String DB_FILE_NAME = "vocab.db";

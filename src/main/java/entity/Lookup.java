@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// Entity representing a Lookup
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
